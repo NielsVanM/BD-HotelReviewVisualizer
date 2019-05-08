@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+      <div class="contain">
+          <div class="row">
+              <div class="h-100 col-12 d-flex justify-content-center text-center align-items-center">
+                <div class="d-flex flex-column">
+                    <h1>Upload your reviews!</h1>
+                    <div class="d-flex flex-row justify-content-between w-100">
+                        <form action="/uploader/negative" method="post">
+                            <input type="file" name="negetaive_reviews_csv" id="netative_reviews_csv" class="btn btn-primary">
+                        </form>
+                        <form action="/uploader/positive" method="post">
+                            <input type="file" name="postive_reviews_csv" id="positive_reviews_csv" class="btn btn-primary">
+                        </form>
+                    </div>
+                    <div class="mb-4"></div>
+                    <h3>The CSV files should have the following fields</h3>
+                    <span>
+                        Hotel_Address text, <br>
+                        Hotel_Name text, <br>
+                        Lat double, <br>
+                        Lng double, <br>
+                        Average_Score double, <br>
+                        Total_Number_of_Reviews int, <br>
+                        Additional_Number_of_Scoring int, <br>
+                        Reviewer_Nationality text, <br>
+                        Review_Date text, <br>
+                        Review text, <br>
+                        Review_Word_Counts int, <br>
+                        Total_Number_of_Reviews_Reviewer_Has_Given int, <br>
+                        Reviewer_Score double, <br>
+                        Tags text, <br>
+                        Sentiment int, additional field indicating a positive Review 1, or a negative review 0 <br>
+                    </span>
+                </div>
+              </div>
+          </div>
+      </div>
+{% endblock content %}
