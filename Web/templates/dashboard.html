@@ -3,32 +3,24 @@
 {% block content %}
 <div class="row mt-4">
 </div>
-    {% comment %} <script src="/static/ext/highcharts.js"></script> {% endcomment %}
-    <script src="/static/ext/highmaps.js"></script>
-    <script src="/static/world.js"></script>
+    <script src="/static/ext/proj4.js"></script>
+    <script src="/static/ext/highcharts.js"></script>
+    <script src="/static/ext/map.js"></script>
+    <script src="/static/ext/europe.js"></script>
+    <script src="/static/countries.js"></script>
     <script src="/static/visualizations.js"></script>
-{% comment %} <div class="row">
-    <div class="col-4">
-    <div class="card">
-        <div class="card-body">
-            <h4 class="card-title">Platform Statistics</h4>
-            <p class="card-text">
-                <ul style="list-style: none;">
-                    <li>Review Count: {{review_count}}</li>
-                    <li>Positive Reviews: {{pos_rev_count}}</li>
-                    <li>Negative Reviews: {{neg_rev_count}}</li>
-                </ul>
-            </p>
-        </div>
-    </div>
-    </div>
-</div> {% endcomment %}
 
 <div class="row">
-    <div class="col-5">
-        <div id="chart">
-            Loading Chart...
-        </div>
+    <div class="col-4">
+        <div id="chart"></div>
+    </div>
+    <div class="col-8">
+        <div id="reviewovertime"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-6">
+        <div id="scorebynationalitymap"></div>
     </div>
 </div>
 {% endblock content %}

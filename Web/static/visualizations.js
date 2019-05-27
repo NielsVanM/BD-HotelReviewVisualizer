@@ -7,109 +7,159 @@ function paramString(object) {
     return strBuilder.join('&');
 }
 
-function RetrieveData(settings) {
-    uri = paramString(settings)
-    outData = null
-    $.ajax({
-        type: "GET",
-        url: "/data/?" + uri,
-        success: function (res, stat) {
-            outData = JSON.parse(res)
-        },
-        async: false,
-    })
-
-    return outData
-}
-
-function MapChart() {
-    // Map with all the hotels scattered across the map
-    // mapdata = RetrieveData({ "chart": "hotelmap" })
-
-    // Initiate the chart
-    Highcharts.mapChart('chart', {
-
+async function MapChart() {
+    // Map with all the hotels scattered across the map    
+    var chart = Highcharts.mapChart('chart', {
         chart: {
-            map: 'custom/world-eckert3-highres'
+            map: 'custom/europe'
         },
-    
         title: {
-            text: 'Highmaps basic lat/lon demo'
+            text: 'Hotels with reviews'
         },
-    
         mapNavigation: {
             enabled: true
         },
-    
-        tooltip: {
-            headerFormat: '',
-            pointFormat: '<b>{point.name}</b><br>Lat: {point.lat}, Lon: {point.lon}'
+        plotOptions: {
+            series: {
+                boostThreshold: 2000,
+                turboThreshold: 0
+            },
         },
-    
         series: [{
-            // Use the gb-all map with no data as a basemap
             name: 'Basemap',
-            borderColor: '#A0A0A0',
+            borderColor: '#BBBBBB',
             nullColor: 'rgba(200, 200, 200, 0.3)',
             showInLegend: false
         }, {
-            name: 'Separators',
-            type: 'mapline',
-            nullColor: '#707070',
-            showInLegend: false,
-            enableMouseTracking: false
-        }, {
-            // Specify points using lat/lon
             type: 'mappoint',
             name: 'Hotels',
             color: Highcharts.getOptions().colors[1],
-            data: [{
-                name: 'London',
-                lat: 51.507222,
-                lon: -0.1275
-            }, {
-                name: 'Birmingham',
-                lat: 52.483056,
-                lon: -1.893611
-            }, {
-                name: 'Leeds',
-                lat: 53.799722,
-                lon: -1.549167
-            }, {
-                name: 'Glasgow',
-                lat: 55.858,
-                lon: -4.259
-            }, {
-                name: 'Sheffield',
-                lat: 53.383611,
-                lon: -1.466944
-            }, {
-                name: 'Liverpool',
-                lat: 53.4,
-                lon: -3
-            }, {
-                name: 'Bristol',
-                lat: 51.45,
-                lon: -2.583333
-            }, {
-                name: 'Belfast',
-                lat: 54.597,
-                lon: -5.93
-            }, {
-                name: 'Lerwick',
-                lat: 60.155,
-                lon: -1.145,
-                dataLabels: {
-                    align: 'left',
-                    x: 5,
-                    verticalAlign: 'middle'
-                }
-            }]
+            data: null
         }]
     });
 
+    chart.showLoading()
+    $.ajax({
+        type: "GET",
+        url: "/data/?" + paramString({ "chart": "hotelmap" }),
+        success: function (res) {
+            chart.series[1].setData(JSON.parse(res), true, true, true)
+            chart.hideLoading()
+        },
+        async: true,
+    })
+}
+
+async function ReviewOverTimeChart() {
+    chart = Highcharts.chart('reviewovertime', {
+        chart: {
+            zoomType: "x",
+        },
+
+        title: {
+            text: "Amount of reviews over time."
+        },
+
+        xAxis: {
+            title: {
+                text: "Date"
+            },
+            type: 'datetime'
+        },
+
+        yAxis: {
+            title: {
+                text: "Amount of reviews"
+            }
+        },
+
+        series: [
+            {
+                name: 'Amount of reviews',
+                type: "line",
+                data: [[20, 20],[20,20]]
+            }
+        ]
+    })
+
+    chart.showLoading()
+    $.ajax({
+        type: "GET",
+        url: "/data/?" + paramString({ "chart": "reviewovertime" }),
+        success: function (res) {
+            data = JSON.parse(res)
+            data.forEach(entry => {
+                entry[0] = Date.parse(entry[0])
+            });
+
+            chart.series[0].setData(data, true, true, true)
+            chart.hideLoading()
+        },
+        async: true,
+    })
+}
+
+function ScoreByCountryMap() {
+    var chart = Highcharts.mapChart('scorebynationalitymap', {
+        chart: {
+            map: 'custom/europe'
+        },
+        title: {
+            text: 'Average score per nationality'
+        },
+        mapNavigation: {
+            enabled: true
+        },
+        plotOptions: {
+            series: {
+                boostThreshold: 2000,
+                turboThreshold: 0
+            },
+        },
+
+        legend: {
+            layout: 'horizontal',
+            borderWidth: 0,
+            backgroundColor: 'rgba(255,255,255,0.85)',
+            floating: true,
+            verticalAlign: 'top',
+            y: 25
+        },
+        series: [{
+            name: 'Basemap',
+            borderColor: '#BBBBBB',
+            nullColor: 'rgba(200, 200, 200, 0.3)',
+            showInLegend: false
+        }, {
+            type: 'mappoint',
+            name: 'Scores',
+            color: Highcharts.getOptions().colors[1],
+            data: null,
+            joinBy: ['nationality', 'name']
+        }]
+    });
+
+    chart.showLoading()
+    $.ajax({
+        type: "GET",
+        url: "/data/?" + paramString({ "chart": "scorepernationality" }),
+        success: function (res) {
+            data = JSON.parse(res)
+            
+            data.forEach(country => {
+                console.log(getCountryName(country["code"]))
+                country["code"] = getCountryName(country["code"])
+            });
+
+            chart.series[1].setData(data, true, true, true)
+            chart.hideLoading()
+        },
+        async: true,
+    })
 }
 
 $(document).ready(function () {
-    setTimeout(MapChart, 0)
+    MapChart()
+    ReviewOverTimeChart()
+    ScoreByCountryMap()
 })
