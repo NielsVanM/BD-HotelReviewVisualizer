@@ -7,7 +7,7 @@ function paramString(object) {
     return strBuilder.join('&');
 }
 
-async function MapChart() {
+function MapChart() {
     // Map with all the hotels scattered across the map    
     var chart = Highcharts.mapChart('chart', {
         chart: {
@@ -21,7 +21,7 @@ async function MapChart() {
         },
         plotOptions: {
             series: {
-                boostThreshold: 2000,
+                boostThreshold: 100,
                 turboThreshold: 0
             },
         },
@@ -33,8 +33,12 @@ async function MapChart() {
         }, {
             type: 'mappoint',
             name: 'Hotels',
-            color: Highcharts.getOptions().colors[1],
-            data: null
+            color: "blue",
+            data: [{
+                "id": "Dummy",
+                "lon": 0,
+                "lat": 0
+            }]
         }]
     });
 
@@ -42,15 +46,31 @@ async function MapChart() {
     $.ajax({
         type: "GET",
         url: "/data/?" + paramString({ "chart": "hotelmap" }),
-        success: function (res) {
-            chart.series[1].setData(JSON.parse(res), true, true, true)
+        success: function (res) {          
+            data = JSON.parse(res)
+            realdata = []
+
+            data.forEach(hotel => {
+                // Parse the information
+                hotel = hotel["_id"]
+                hotel["lat"] = parseFloat(hotel["lat"])
+                hotel["lon"] = parseFloat(hotel["lon"])
+
+                if (isFinite(hotel["lat"]) && isFinite(hotel["lon"])) {
+                    realdata.push(
+                        hotel
+                    )
+                }
+
+            });
+            
+            chart.series[1].setData(realdata, true, true, true)
             chart.hideLoading()
         },
-        async: true,
     })
 }
 
-async function ReviewOverTimeChart() {
+function ReviewOverTimeChart() {
     chart = Highcharts.chart('reviewovertime', {
         chart: {
             zoomType: "x",
@@ -95,7 +115,6 @@ async function ReviewOverTimeChart() {
             chart.series[0].setData(data, true, true, true)
             chart.hideLoading()
         },
-        async: true,
     })
 }
 
@@ -147,14 +166,13 @@ function ScoreByCountryMap() {
             data = JSON.parse(res)
             
             data.forEach(country => {
-                console.log(getCountryName(country["code"]))
+                // console.log(getCountryName(country["code"]))
                 country["code"] = getCountryName(country["code"])
             });
 
             chart.series[1].setData(data, true, true, true)
             chart.hideLoading()
         },
-        async: true,
     })
 }
 

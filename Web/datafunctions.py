@@ -19,22 +19,38 @@ def GetPosNegCount():
 def GetHotelCoordinates():
     hotel_name_list = []
     coordinates = []
-    for doc in ReviewDB.find({}, {"lat", "lng", "Hotel_Name"}):
 
-        if doc["Hotel_Name"] in hotel_name_list:
-            continue
+    print(ReviewDB.find().distinct("lat"))
 
-        if doc["lat"] == 'NA' or doc["lng"] == 'NA':
-            continue
+    # for doc in ReviewDB.find({"Hotel_Name" : {"$in": ReviewDB.find().distinct("Hotel_Name")}}, {"lat", "lng", "Hotel_Name"}):
 
-        hotel_name_list.append(doc["Hotel_Name"])
-        coordinates.append({
-            "id": doc["Hotel_Name"],
-            "lat": float(doc["lat"]),
-            "lon": float(doc["lng"])
-        })
+    #     # if doc["Hotel_Name"] in hotel_name_list:
+    #     #     continue
 
-    return coordinates
+    #     if doc["lat"] == 'NA' or doc["lng"] == 'NA':
+    #         continue
+
+    #     hotel_name_list.append(doc["Hotel_Name"])
+    #     coordinates.append({
+    #         "id": doc["Hotel_Name"],
+    #         "lat": int(float(doc["lat"]) * 1000) / 1000,
+    #         "lon": int(float(doc["lng"]) * 1000) / 1000
+    #     })
+
+    pipeline = [
+        {"$group":
+            {"_id": {
+                "name": "$Hotel_Name",
+                "lat": "$lat",
+                "lon": "$lng"
+                }
+            }
+        }
+    ]
+
+    res = ReviewDB.aggregate(pipeline)
+
+    return res
 
 
 def GetReviewOverTime():
