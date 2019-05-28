@@ -17,26 +17,6 @@ def GetPosNegCount():
 
 
 def GetHotelCoordinates():
-    hotel_name_list = []
-    coordinates = []
-
-    print(ReviewDB.find().distinct("lat"))
-
-    # for doc in ReviewDB.find({"Hotel_Name" : {"$in": ReviewDB.find().distinct("Hotel_Name")}}, {"lat", "lng", "Hotel_Name"}):
-
-    #     # if doc["Hotel_Name"] in hotel_name_list:
-    #     #     continue
-
-    #     if doc["lat"] == 'NA' or doc["lng"] == 'NA':
-    #         continue
-
-    #     hotel_name_list.append(doc["Hotel_Name"])
-    #     coordinates.append({
-    #         "id": doc["Hotel_Name"],
-    #         "lat": int(float(doc["lat"]) * 1000) / 1000,
-    #         "lon": int(float(doc["lng"]) * 1000) / 1000
-    #     })
-
     pipeline = [
         {"$group":
             {"_id": {
