@@ -19,12 +19,12 @@ def DataView(request):
         return HttpResponse("Invalid Request, no chart provided")
 
     if chart == "hotelmap":
-        return HttpResponse(dumps(GetHotelCoordinates()))
+        return HttpResponse(dumps(GetHotelCoordinates(request)))
     
     if chart == "reviewovertime":
-        return HttpResponse(dumps(GetReviewOverTime()))
+        return HttpResponse(dumps(GetReviewOverTime(request)))
     
     if chart == "scorepernationality":
-        return HttpResponse(dumps(GetAverageScorePerReviewerCountry()))
+        return HttpResponse(dumps(GetAverageScorePerReviewerCountry(request)))
 
     return HttpResponse(None)

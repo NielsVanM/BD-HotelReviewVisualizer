@@ -16,7 +16,7 @@ def GetPosNegCount():
     }
 
 
-def GetHotelCoordinates():
+def GetHotelCoordinates(request):
     pipeline = [
         {"$group":
             {"_id": {
@@ -33,7 +33,13 @@ def GetHotelCoordinates():
     return res
 
 
-def GetReviewOverTime():
+def GetReviewOverTime(request):
+    hotelNameFilter = request.GET.get("hotelnames")
+
+    fq = None
+    if hotelNameFilter != None:
+        fq = {"Hotel_Name": {"$in": hotelNameFilter.split(",")}}
+
     res = ReviewDB.map_reduce(
         Code("""
         function() {
@@ -46,10 +52,12 @@ def GetReviewOverTime():
                 total += values[i]
             }
             return total
-        }"""), "res")
+        }"""), "res", query=fq)
+
+    dataSet = res.find()
 
     data = []
-    for doc in res.find():
+    for doc in dataSet:
         date = datetime.strptime(doc["_id"], "%m/%d/%Y")
 
         data.append([
@@ -60,7 +68,7 @@ def GetReviewOverTime():
     return data
 
 
-def GetAverageScorePerReviewerCountry():
+def GetAverageScorePerReviewerCountry(request):
     res = ReviewDB.map_reduce(
         Code("""
             function() {

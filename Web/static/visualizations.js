@@ -1,4 +1,7 @@
 
+var MapVisualization = null
+var ReviewTimeVisualization = null
+
 function paramString(object) {
     var strBuilder = [];
     for (var key in object) if (object.hasOwnProperty(key)) {
@@ -56,6 +59,8 @@ function GroupHotels(hotellist) {
     return data
 }
 
+// Calculates the latitude/longitude center of a group provided by
+// GroupHotels()
 function LatLonCenter(group) {
 
     var totalLat = 0
@@ -70,9 +75,60 @@ function LatLonCenter(group) {
 
 function MapChart() {
     // Map with all the hotels scattered across the map    
-    var chart = Highcharts.mapChart('chart', {
+    var MapVisualization = Highcharts.mapChart('chart', {
         chart: {
-            map: 'custom/europe'
+            map: 'custom/europe',
+            events: {
+                // Filter the reviewovertime chart with the currently
+                // visible hotels
+                drilldown: function(e) {
+                    // Extract the hotel names
+                    var hotelNames = []
+                    e.seriesOptions.data.forEach(hotel => {
+                        hotelNames.push(hotel.name)
+                    });
+
+                    // Show loading
+                    ReviewTimeVisualization.showLoading()
+
+                    // Request data
+                    $.ajax({
+                        type: "GET",
+                        url: "/data/?" + paramString({ "chart": "reviewovertime", "hotelnames": hotelNames}),
+                        success: function (res) {
+                            data = JSON.parse(res)
+                            data.forEach(entry => {
+                                entry[0] = Date.parse(entry[0])
+                            });
+                
+                            ReviewTimeVisualization.series[0].setData(data, true, true, true)
+                            ReviewTimeVisualization.hideLoading()
+                        },
+                    })
+                },
+
+                // Reset the filter on the reviewovertimechart
+                drillup: function(e) {
+                    // Show loading
+                    ReviewTimeVisualization.showLoading()
+                    // ReviewTimeVisualization.series[0].setData([[20, 20], [20, 20]], true, true, true)
+
+                    // Request data
+                    $.ajax({
+                        type: "GET",
+                        url: "/data/?" + paramString({ "chart": "reviewovertime"}),
+                        success: function (res) {
+                            data = JSON.parse(res)
+                            data.forEach(entry => {
+                                entry[0] = Date.parse(entry[0])
+                            });
+                            
+                            ReviewTimeVisualization.series[0].setData(data, true, true, true)
+                            ReviewTimeVisualization.hideLoading()
+                        },
+                    })
+                }
+            }
         },
         title: {
             text: 'Hotels with reviews'
@@ -103,10 +159,10 @@ function MapChart() {
         }],
         drilldown: {
             series: []
-        }
+        },
     });
 
-    chart.showLoading()
+    MapVisualization.showLoading()
     $.ajax({
         type: "GET",
         url: "/data/?" + paramString({ "chart": "hotelmap" }),
@@ -159,17 +215,15 @@ function MapChart() {
             }
 
             // Add data to chart
-            chart.series[1].setData(series, true, true, true)
-            chart.options.drilldown.series = drillseries
-            chart.hideLoading()
-            console.log(drillseries)
-            // console.log(chart.options.drilldown.series)
+            MapVisualization.series[1].setData(series, true, true, true)
+            MapVisualization.options.drilldown.series = drillseries
+            MapVisualization.hideLoading()
         },
     })
 }
 
 function ReviewOverTimeChart() {
-    chart = Highcharts.chart('reviewovertime', {
+    ReviewTimeVisualization = Highcharts.chart('reviewovertime', {
         chart: {
             zoomType: "x",
         },
@@ -200,7 +254,7 @@ function ReviewOverTimeChart() {
         ]
     })
 
-    chart.showLoading()
+    ReviewTimeVisualization.showLoading()
     $.ajax({
         type: "GET",
         url: "/data/?" + paramString({ "chart": "reviewovertime" }),
@@ -210,8 +264,8 @@ function ReviewOverTimeChart() {
                 entry[0] = Date.parse(entry[0])
             });
 
-            chart.series[0].setData(data, true, true, true)
-            chart.hideLoading()
+            ReviewTimeVisualization.series[0].setData(data, true, true, true)
+            ReviewTimeVisualization.hideLoading()
         },
     })
 }
@@ -264,7 +318,6 @@ function ScoreByCountryMap() {
             data = JSON.parse(res)
 
             data.forEach(country => {
-                // console.log(getCountryName(country["code"]))
                 country["code"] = getCountryName(country["code"])
             });
 
