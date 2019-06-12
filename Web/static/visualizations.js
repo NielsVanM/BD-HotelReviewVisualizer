@@ -2,6 +2,33 @@
 var MapVisualization = null
 var ReviewTimeVisualization = null
 
+function UpdateReviewOverTime(argumen) {
+    if (argumen == undefined) {
+        console.error("Invalid argument provided")
+        return
+    }
+
+    // Show loading
+    ReviewTimeVisualization.showLoading()
+
+    argumen["chart"] = "reviewovertime"
+
+    // Request data
+    $.ajax({
+        type: "GET",
+        url: "/data/?" + paramString(argumen),
+        success: function (res) {
+            data = JSON.parse(res)
+            data.forEach(entry => {
+                entry[0] = Date.parse(entry[0])
+            });
+
+            ReviewTimeVisualization.series[0].setData(data, true, true, true)
+            ReviewTimeVisualization.hideLoading()
+        },
+    })
+}
+
 function paramString(object) {
     var strBuilder = [];
     for (var key in object) if (object.hasOwnProperty(key)) {
@@ -81,52 +108,19 @@ function MapChart() {
             events: {
                 // Filter the reviewovertime chart with the currently
                 // visible hotels
-                drilldown: function(e) {
+                drilldown: function (e) {
                     // Extract the hotel names
                     var hotelNames = []
                     e.seriesOptions.data.forEach(hotel => {
                         hotelNames.push(hotel.name)
                     });
 
-                    // Show loading
-                    ReviewTimeVisualization.showLoading()
-
-                    // Request data
-                    $.ajax({
-                        type: "GET",
-                        url: "/data/?" + paramString({ "chart": "reviewovertime", "hotelnames": hotelNames}),
-                        success: function (res) {
-                            data = JSON.parse(res)
-                            data.forEach(entry => {
-                                entry[0] = Date.parse(entry[0])
-                            });
-                
-                            ReviewTimeVisualization.series[0].setData(data, true, true, true)
-                            ReviewTimeVisualization.hideLoading()
-                        },
-                    })
+                    UpdateReviewOverTime({ "hotelnames": hotelNames })
                 },
 
                 // Reset the filter on the reviewovertimechart
-                drillup: function(e) {
-                    // Show loading
-                    ReviewTimeVisualization.showLoading()
-                    // ReviewTimeVisualization.series[0].setData([[20, 20], [20, 20]], true, true, true)
-
-                    // Request data
-                    $.ajax({
-                        type: "GET",
-                        url: "/data/?" + paramString({ "chart": "reviewovertime"}),
-                        success: function (res) {
-                            data = JSON.parse(res)
-                            data.forEach(entry => {
-                                entry[0] = Date.parse(entry[0])
-                            });
-                            
-                            ReviewTimeVisualization.series[0].setData(data, true, true, true)
-                            ReviewTimeVisualization.hideLoading()
-                        },
-                    })
+                drillup: function (e) {
+                    UpdateReviewOverTime({})
                 }
             }
         },
@@ -138,8 +132,18 @@ function MapChart() {
         },
         plotOptions: {
             series: {
-                boostThreshold: 100,
-                turboThreshold: 0
+                point: {
+                    events: {
+                        click: function (e) {
+                            // Return if the click was a drilldown
+                            if (this.name == undefined) {
+                                return false
+                            }
+                            UpdateReviewOverTime({"hotelnames": this.name})
+                            return false
+                        }
+                    }
+                }
             },
         },
         series: [{
@@ -254,77 +258,7 @@ function ReviewOverTimeChart() {
         ]
     })
 
-    ReviewTimeVisualization.showLoading()
-    $.ajax({
-        type: "GET",
-        url: "/data/?" + paramString({ "chart": "reviewovertime" }),
-        success: function (res) {
-            data = JSON.parse(res)
-            data.forEach(entry => {
-                entry[0] = Date.parse(entry[0])
-            });
-
-            ReviewTimeVisualization.series[0].setData(data, true, true, true)
-            ReviewTimeVisualization.hideLoading()
-        },
-    })
-}
-
-function ScoreByCountryMap() {
-    var chart = Highcharts.mapChart('scorebynationalitymap', {
-        chart: {
-            map: 'custom/europe'
-        },
-        title: {
-            text: 'Average score per nationality'
-        },
-        mapNavigation: {
-            enabled: true
-        },
-        plotOptions: {
-            series: {
-                boostThreshold: 2000,
-                turboThreshold: 0
-            },
-        },
-
-        legend: {
-            layout: 'horizontal',
-            borderWidth: 0,
-            backgroundColor: 'rgba(255,255,255,0.85)',
-            floating: true,
-            verticalAlign: 'top',
-            y: 25
-        },
-        series: [{
-            name: 'Basemap',
-            borderColor: '#BBBBBB',
-            nullColor: 'rgba(200, 200, 200, 0.3)',
-            showInLegend: false
-        }, {
-            type: 'mappoint',
-            name: 'Scores',
-            color: Highcharts.getOptions().colors[1],
-            data: null,
-            joinBy: ['nationality', 'name']
-        }]
-    });
-
-    chart.showLoading()
-    $.ajax({
-        type: "GET",
-        url: "/data/?" + paramString({ "chart": "scorepernationality" }),
-        success: function (res) {
-            data = JSON.parse(res)
-
-            data.forEach(country => {
-                country["code"] = getCountryName(country["code"])
-            });
-
-            chart.series[1].setData(data, true, true, true)
-            chart.hideLoading()
-        },
-    })
+    UpdateReviewOverTime({})
 }
 
 $(document).ready(function () {
