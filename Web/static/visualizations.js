@@ -1,9 +1,10 @@
 
 var MapVisualization = null
 var ReviewTimeVisualization = null
+var ReviewPerCountryVisualization = null
 
-function UpdateReviewOverTime(argumen) {
-    if (argumen == undefined) {
+function UpdateReviewOverTime(arg) {
+    if (arg == undefined) {
         console.error("Invalid argument provided")
         return
     }
@@ -11,12 +12,12 @@ function UpdateReviewOverTime(argumen) {
     // Show loading
     ReviewTimeVisualization.showLoading()
 
-    argumen["chart"] = "reviewovertime"
+    arg["chart"] = "reviewovertime"
 
     // Request data
     $.ajax({
         type: "GET",
-        url: "/data/?" + paramString(argumen),
+        url: "/data/?" + paramString(arg),
         success: function (res) {
             data = JSON.parse(res)
             data.forEach(entry => {
@@ -27,6 +28,103 @@ function UpdateReviewOverTime(argumen) {
             ReviewTimeVisualization.hideLoading()
         },
     })
+}
+
+function UpdateHotelMap(arg) {
+    if (arg == undefined) {
+        console.error("Invalid argument provided")
+        return
+    }
+
+    arg["chart"] = "hotelmap"
+
+    MapVisualization.showLoading()
+    $.ajax({
+        type: "GET",
+        url: "/data/?" + paramString(arg),
+        success: function (res) {
+            data = JSON.parse(res)
+            realdata = []
+
+            data.forEach(hotel => {
+                // Parse the information
+                hotel = hotel["_id"]
+                hotel["lat"] = parseFloat(hotel["lat"])
+                hotel["lon"] = parseFloat(hotel["lon"])
+
+                if (isFinite(hotel["lat"]) && isFinite(hotel["lon"])) {
+                    realdata.push(
+                        hotel
+                    )
+                }
+
+            });
+
+            // Group by location
+            groups = GroupHotels(realdata)
+
+            // Create drilldowns based on groups
+            series = []
+            drillseries = [{
+                name: 'Basemap',
+                borderColor: '#BBBBBB',
+                nullColor: 'rgba(200, 200, 200, 0.3)',
+                showInLegend: false
+            }]
+            for (var i = 0; i < groups.length; i++) {
+                center = LatLonCenter(groups[i])
+                series.push({
+                    id: "idi" + i.toString(),
+                    lat: center[0],
+                    lon: center[1],
+                    drilldown: "id" + i.toString()
+                })
+
+                drillseries.push({
+                    id: "id" + i.toString(),
+                    name: "id" + i.toString(),
+                    data: groups[i],
+                    type: 'mappoint',
+                    name: 'Hotels',
+                    colorByPoint: true,
+                })
+            }
+
+            // Add data to chart
+            MapVisualization.series[1].setData(series, true, true, true)
+            MapVisualization.options.drilldown.series = drillseries
+            MapVisualization.hideLoading()
+        },
+    })
+}
+
+function UpdateReviewsPerNationality(arg) {
+    if (arg == undefined) {
+        console.error("Invalid argument provided")
+        return
+    }
+
+    arg["chart"] = "reviewpernationality"
+
+    ReviewPerCountryVisualization.showLoading()
+
+    $.ajax({
+        type: "GET",
+        url: "/data/?" + paramString(arg),
+        success: function(res) {
+            data = JSON.parse(res)
+
+            ReviewPerCountryVisualization.series[0].setData(data, true, true, true)
+            ReviewPerCountryVisualization.hideLoading()
+        }
+    })
+
+}
+
+function UpdateVisualizations(arg) {
+    // UpdateHotelMap(arg)
+    UpdateReviewOverTime(arg)
+    UpdateReviewsPerNationality(arg)
 }
 
 function paramString(object) {
@@ -102,7 +200,7 @@ function LatLonCenter(group) {
 
 function MapChart() {
     // Map with all the hotels scattered across the map    
-    var MapVisualization = Highcharts.mapChart('chart', {
+    MapVisualization = Highcharts.mapChart('chart', {
         chart: {
             map: 'custom/europe',
             events: {
@@ -115,17 +213,17 @@ function MapChart() {
                         hotelNames.push(hotel.name)
                     });
 
-                    UpdateReviewOverTime({ "hotelnames": hotelNames })
+                    UpdateVisualizations({ "hotelnames": hotelNames })
                 },
 
                 // Reset the filter on the reviewovertimechart
                 drillup: function (e) {
-                    UpdateReviewOverTime({})
+                    UpdateVisualizations({})
                 }
             }
         },
         title: {
-            text: 'Hotels with reviews'
+            text: 'Hotels'
         },
         mapNavigation: {
             enabled: true
@@ -139,7 +237,7 @@ function MapChart() {
                             if (this.name == undefined) {
                                 return false
                             }
-                            UpdateReviewOverTime({"hotelnames": this.name})
+                            UpdateVisualizations({"hotelnames": this.name})
                             return false
                         }
                     }
@@ -166,64 +264,8 @@ function MapChart() {
         },
     });
 
-    MapVisualization.showLoading()
-    $.ajax({
-        type: "GET",
-        url: "/data/?" + paramString({ "chart": "hotelmap" }),
-        success: function (res) {
-            data = JSON.parse(res)
-            realdata = []
+    UpdateHotelMap({})
 
-            data.forEach(hotel => {
-                // Parse the information
-                hotel = hotel["_id"]
-                hotel["lat"] = parseFloat(hotel["lat"])
-                hotel["lon"] = parseFloat(hotel["lon"])
-
-                if (isFinite(hotel["lat"]) && isFinite(hotel["lon"])) {
-                    realdata.push(
-                        hotel
-                    )
-                }
-
-            });
-
-            // Group by location
-            groups = GroupHotels(realdata)
-
-            // Create drilldowns based on groups
-            series = []
-            drillseries = [{
-                name: 'Basemap',
-                borderColor: '#BBBBBB',
-                nullColor: 'rgba(200, 200, 200, 0.3)',
-                showInLegend: false
-            }]
-            for (var i = 0; i < groups.length; i++) {
-                center = LatLonCenter(groups[i])
-                series.push({
-                    id: "idi" + i.toString(),
-                    lat: center[0],
-                    lon: center[1],
-                    drilldown: "id" + i.toString()
-                })
-
-                drillseries.push({
-                    id: "id" + i.toString(),
-                    name: "id" + i.toString(),
-                    data: groups[i],
-                    type: 'mappoint',
-                    name: 'Hotels',
-                    colorByPoint: true,
-                })
-            }
-
-            // Add data to chart
-            MapVisualization.series[1].setData(series, true, true, true)
-            MapVisualization.options.drilldown.series = drillseries
-            MapVisualization.hideLoading()
-        },
-    })
 }
 
 function ReviewOverTimeChart() {
@@ -233,7 +275,7 @@ function ReviewOverTimeChart() {
         },
 
         title: {
-            text: "Amount of reviews over time."
+            text: "Amount of reviews over time"
         },
 
         xAxis: {
@@ -261,8 +303,51 @@ function ReviewOverTimeChart() {
     UpdateReviewOverTime({})
 }
 
+function ReviewByNationality() {
+    ReviewPerCountryVisualization = Highcharts.chart('piechart', {
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            type: 'pie'
+        },
+        title: {
+            text: 'Amount or reviews per nationality'
+        },
+        plotOptions: {
+            pie: {
+                // allowPointSelect: true,
+                cursor: 'pointer',
+                innerSize: 150,
+                dataLabels: {
+                    enabled: true,
+                    format: '<b>{point.name}</b>: {point.y}',
+                    style: {
+                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                    }
+                }
+            },
+            series: {
+                turboThreshold: 10000,
+                events: {
+                    click: function(event) {
+                        console.log(this)
+                    }
+                }
+            }
+        },
+        series: [{
+            name: 'Brands',
+            colorByPoint: true,
+            data: []
+        }]
+    });
+
+    UpdateReviewsPerNationality({})
+}
+
 $(document).ready(function () {
     MapChart()
     ReviewOverTimeChart()
-    // ScoreByCountryMap()
+    ReviewByNationality()
 })

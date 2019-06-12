@@ -1,10 +1,10 @@
 import json
 
-from django.shortcuts import HttpResponse, render
+from django.shortcuts import HttpResponse
 from django.views.generic import TemplateView
 from bson.json_util import dumps
 
-from .datafunctions import GetPosNegCount, GetHotelCoordinates, GetReviewOverTime, GetAverageScorePerReviewerCountry
+from .datafunctions import GetPosNegCount, GetHotelCoordinates, GetReviewOverTime, GetAverageScorePerReviewerCountry, GetAmountOfReviewsPerNationality
 from DataLoader.apps import _Mongo
 
 # Create your views here.
@@ -15,16 +15,22 @@ class DashboardView(TemplateView):
 
 def DataView(request):
     chart = request.GET.get("chart", None)
+    res = None
     if chart == None:
         return HttpResponse("Invalid Request, no chart provided")
 
     if chart == "hotelmap":
-        return HttpResponse(dumps(GetHotelCoordinates(request)))
+        res = GetHotelCoordinates(request)
     
     if chart == "reviewovertime":
-        return HttpResponse(dumps(GetReviewOverTime(request)))
+        res = GetReviewOverTime(request)
     
     if chart == "scorepernationality":
-        return HttpResponse(dumps(GetAverageScorePerReviewerCountry(request)))
+        res = GetAverageScorePerReviewerCountry(request)
+    
+    if chart == "reviewpernationality":
+        res = GetAmountOfReviewsPerNationality(request)
 
-    return HttpResponse(None)
+    return HttpResponse(
+        dumps(res)
+    )

@@ -99,3 +99,35 @@ def GetAverageScorePerReviewerCountry(request):
         })
 
     return out
+
+def GetAmountOfReviewsPerNationality(request):
+    hotelNameFilter = request.GET.get("hotelnames")
+
+    fq = None
+    if hotelNameFilter != None:
+        fq = {"Hotel_Name": {"$in": hotelNameFilter.split(",")}}
+
+    res = ReviewDB.map_reduce(
+        Code("""
+            function() {
+                emit(this.Reviewer_Nationality, 2)
+            }
+        """),
+        Code("""
+            function(key, values) {
+                var total = 0
+                for (var i = 0; i < values.length; i ++) {
+                    total += values[i]
+                }
+                return total
+            }
+        """), "out", query=fq)
+    
+    out = []
+    for doc in res.find():
+        out.append({
+            "name": doc["_id"],
+            "y": doc["value"]
+        })
+
+    return out[1:]
