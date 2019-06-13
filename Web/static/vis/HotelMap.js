@@ -3,34 +3,47 @@ class HotelMapVis {
     constructor(targetDiv) {
         this.otherCharts = []
         this.chart = Highcharts.mapChart('chart', {
-                chart: {
-                    map: 'custom/europe',
-                },
-                title: {
-                    text: 'Hotels'
-                },
-                mapNavigation: {
-                    enabled: true
-                },
-                series: [{
-                    name: 'Basemap',
-                    borderColor: '#BBBBBB',
-                    nullColor: 'rgba(200, 200, 200, 0.3)',
-                    showInLegend: false
-                }, {
-                    type: 'mappoint',
-                    name: 'Hotels',
-                    colorByPoint: true,
-                    data: [{
-                        "id": "Dummy",
-                        "lon": 0,
-                        "lat": 0
-                    }]
-                }],
-                drilldown: {
-                    series: []
-                },
-            });
+            chart: {
+                map: 'custom/europe',
+                events: {
+                    drilldown: this.onDrillDown,
+                    drillup: this.onDrillUp
+                }
+            },
+            plotOptions: {
+                series: {
+                    point: {
+                        events: {
+                            click: this.onClick
+                        }
+                    }
+                }
+            },
+            title: {
+                text: 'Hotels'
+            },
+            mapNavigation: {
+                enabled: true
+            },
+            series: [{
+                name: 'Basemap',
+                borderColor: '#BBBBBB',
+                nullColor: 'rgba(200, 200, 200, 0.3)',
+                showInLegend: false
+            }, {
+                type: 'mappoint',
+                name: 'Hotels',
+                colorByPoint: true,
+                data: [{
+                    "id": "Dummy",
+                    "lon": 0,
+                    "lat": 0
+                }]
+            }],
+            drilldown: {
+                series: []
+            }
+        });
     }
 
     update(arg) {
@@ -104,9 +117,30 @@ class HotelMapVis {
 
     setOtherCharts(charts) {
         charts.forEach(chart => {
+            // Filter self
             if (chart != this) {
                 this.otherCharts.push(chart)
             }
         });
+    }
+
+    onDrillDown(e) {
+        // Extract the hotel names
+        var hotelNames = []
+        e.seriesOptions.data.forEach(hotel => {
+            hotelNames.push(hotel.name)
+        });
+
+        UpdateCharts(this, {"hotelnames": hotelNames})
+    }
+
+    onDrillUp(e) {
+        UpdateCharts(this, {})
+    }
+
+    onClick(e) {
+        if (this.name != undefined) {
+            UpdateCharts(this.series.chart, {"hotelnames": this.name})
+        }
     }
 }

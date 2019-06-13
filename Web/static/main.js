@@ -1,21 +1,16 @@
-// Sets up thye visualizations
-$(document).ready(function () {
-    var chartList = []
+var ChartList = []
 
+// Sets up thy visualizations
+$(document).ready(function () {
     var ReviewTime = new ReviewOverTimeVis("reviewovertime")
     ReviewTime.update({})
-    chartList.push(ReviewTime)
+    ChartList.push(ReviewTime)
 
     var HotelMap = new HotelMapVis("chart")
     HotelMap.update({})
-    chartList.push(HotelMap)
+    ChartList.push(HotelMap)
 
     var ReviewByNationality = new ReviewByNationalityVis("piechart")
     ReviewByNationality.update({})
-    chartList.push(ReviewByNationality)
-
-    chartList.forEach(chart => {
-        chart.setOtherCharts(chartList)
-    });
-
+    ChartList.push(ReviewByNationality)
 })

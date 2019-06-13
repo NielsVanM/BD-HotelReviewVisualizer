@@ -7,7 +7,17 @@ function paramString(object) {
     return strBuilder.join('&');
 }
 
-// isNear calculates the distance between a source and target hotel and returns true
+// UpdateCharts updates every chart except for the eclude chart with
+// the provided arguments
+function UpdateCharts(exclude, args) {
+    ChartList.forEach(chart => {
+        if (chart.chart != exclude) {
+            chart.update(args)
+        }
+    });
+}
+
+// isNear calculates the distance betwdeen a source and target hotel and returns true
 // if it's lower than the sensitivitiy, else it returns false
 function isNear(source, target, sensitivity) {
     // Check latutide Axis
