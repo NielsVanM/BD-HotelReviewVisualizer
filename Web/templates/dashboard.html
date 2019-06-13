@@ -3,13 +3,23 @@
 {% block content %}
 <div class="row mt-4">
 </div>
+    <!-- Load external libraries -->
     <script src="/static/ext/proj4.js"></script>
     <script src="/static/ext/highcharts.js"></script>
     <script src="/static/ext/map.js"></script>
     <script src="/static/ext/drilldown.js"></script>
     <script src="/static/ext/europe.js"></script>
-    <script src="/static/countries.js"></script>
-    <script src="/static/visualizations.js"></script>
+
+    <!-- Load Helpers -->
+    <script src="/static/vis/helpers.js"></script>
+
+    <!-- Load visualization classes -->
+    <script src="/static/vis/HotelMap.js"></script>
+    <script src="/static/vis/ReviewOverTime.js"></script>
+    <script src="/static/vis/ReviewByNationality.js"></script>
+
+    <!-- Load visualiztaion manager -->
+    <script src="/static/main.js"></script>
 
 <div class="row">
     <div class="col-4">

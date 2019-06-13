@@ -15,4 +15,4 @@ class DataloaderConfig(AppConfig):
         _Mongo = ConnectToDB("localhost", 27017, "", "")
 
         if _Mongo == None:
-            raise ValueError("_Mongo is None")
+            raise ValueError("_Mongo failed to connect")
