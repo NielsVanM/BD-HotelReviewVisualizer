@@ -13,7 +13,6 @@ class ReviewByNationalityVis {
             },
             plotOptions: {
                 pie: {
-                    // allowPointSelect: true,
                     cursor: 'pointer',
                     innerSize: 150,
                     dataLabels: {
@@ -22,15 +21,15 @@ class ReviewByNationalityVis {
                         style: {
                             color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
                         }
+                    },
+                    point: {
+                        events: {
+                            click: this.onClick
+                        }
                     }
                 },
                 series: {
                     turboThreshold: 10000,
-                    events: {
-                        click: function (event) {
-                            console.log(this)
-                        }
-                    }
                 }
             },
             series: [{
@@ -70,5 +69,9 @@ class ReviewByNationalityVis {
                 this.otherCharts.push(chart)
             }
         });
+    }
+
+    onClick(e) {
+        UpdateCharts(this.series.chart, {"countries": this.name})
     }
 }

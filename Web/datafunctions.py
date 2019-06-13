@@ -5,28 +5,47 @@ from datetime import datetime
 ReviewDB = _Mongo.full_reviews
 TinyReviewDB = _Mongo.tiny_reviews
 
+_argToFieldMap = {
+    "hotelnames": "Hotel_Name"
+}
 
-def GetPosNegCount():
-    posReviewCount = TinyReviewDB.count_documents({"positive": True})
-    negReviewCount = TinyReviewDB.count_documents({"positive": False})
 
-    return {
-        "posReviewCount": posReviewCount,
-        "negReviewCount": negReviewCount
-    }
+def _processArgs(request, keys):
+    filterQuery = {}
+    for key in keys:
+        val = request.GET.get(key)
+        if val != None:
+            filterQuery[key] = val.split(",")
+
+    return filterQuery
+
+
+def _buildFilter(args):
+    pass
 
 
 def GetHotelCoordinates(request):
-    pipeline = [
+    countryFilter = request.GET.get("countries")
+    pipeline = []
+    if countryFilter != None:
+        pipeline.append({
+            "$match": {
+                "Reviewer_Nationality": {
+                    "$in": countryFilter.split(",")
+                }
+            }
+        })
+
+    pipeline.append(
         {"$group":
             {"_id": {
                 "name": "$Hotel_Name",
                 "lat": "$lat",
                 "lon": "$lng"
-                }
             }
-        }
-    ]
+            }
+         }
+    )
 
     res = ReviewDB.aggregate(pipeline)
 
@@ -35,10 +54,17 @@ def GetHotelCoordinates(request):
 
 def GetReviewOverTime(request):
     hotelNameFilter = request.GET.get("hotelnames")
+    countryFilter = request.GET.get("countries")
 
-    fq = None
+    fq = {}
     if hotelNameFilter != None:
-        fq = {"Hotel_Name": {"$in": hotelNameFilter.split(",")}}
+        fq["Hotel_Name"] = {"$in": hotelNameFilter.split(",")}
+
+    if countryFilter != None:
+        fq["Reviewer_Nationality"] = {"$in": countryFilter.split(",")}
+
+    if fq == {}:
+        fq = None
 
     res = ReviewDB.map_reduce(
         Code("""
@@ -68,38 +94,6 @@ def GetReviewOverTime(request):
     return data
 
 
-def GetAverageScorePerReviewerCountry(request):
-    res = ReviewDB.map_reduce(
-        Code("""
-            function() {
-                emit(this.Reviewer_Nationality, this.Reviewer_Score)
-            }
-        """),
-        Code("""
-            function(key, values) {
-                var total = 0
-                var count = 0
-                for (var i = 0; i < values.length; i++) {
-                    total += parseInt(values[i])
-                    count ++
-                }
-
-                return parseInt((total / count) * 100) / 100
-            }
-        """), "resultset")
-
-    out = []
-    for doc in res.find():
-        if doc["_id"] == " ":
-            continue
-
-        out.append({
-            "code": doc["_id"],
-            "value": doc["value"]
-        })
-
-    return out
-
 def GetAmountOfReviewsPerNationality(request):
     hotelNameFilter = request.GET.get("hotelnames")
 
@@ -122,7 +116,7 @@ def GetAmountOfReviewsPerNationality(request):
                 return total
             }
         """), "out", query=fq)
-    
+
     out = []
     for doc in res.find():
         out.append({
