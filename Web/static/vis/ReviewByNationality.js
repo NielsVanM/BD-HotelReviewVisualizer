@@ -1,7 +1,6 @@
 class ReviewByNationalityVis {
     constructor(targetDiv) {
-        this.otherCharts = []
-        this.chart = Highcharts.chart('piechart', {
+        this.chart = Highcharts.chart(targetDiv, {
             chart: {
                 plotBackgroundColor: null,
                 plotBorderWidth: null,

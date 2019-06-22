@@ -22,15 +22,24 @@
     <script src="/static/main.js"></script>
 
 <div class="row">
-    <div class="col-4">
-        <div id="chart"></div>
+    <div class="col-2 offset-10">
+        <button class="btn btn-info" onclick="ResetFilters()">Reset All Filters</button>
     </div>
-    <div class="col-8">
+</div>
+
+<div class="mt-1"></div>
+
+<div class="row">
+    <div class="col-12 col-md-4">
+        <div id="chart">
+        </div>
+    </div>
+    <div class="col-12 col-md-8">
         <div id="reviewovertime"></div>
     </div>
 </div>
 <div class="row">
-    <div class="col-6">
+    <div class="col-12 col-md-6">
         <div id="piechart"></div>
     </div>
 </div>

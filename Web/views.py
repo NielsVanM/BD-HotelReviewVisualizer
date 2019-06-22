@@ -13,11 +13,12 @@ from DataLoader.apps import _Mongo
 class DashboardView(TemplateView):
     template_name = "dashboard.html"
 
+class PyTableView(TemplateView):
+    template_name = "base.html"
+
 def DataView(request):
     chart = request.GET.get("chart", None)
-    res = None
-    if chart == None:
-        return HttpResponse("Invalid Request, no chart provided")
+    res = None      
 
     if chart == "hotelmap":
         res = GetHotelCoordinates(request)
@@ -28,6 +29,8 @@ def DataView(request):
     if chart == "reviewpernationality":
         res = GetAmountOfReviewsPerNationality(request)
 
-    return HttpResponse(
-        dumps(res)
-    )
+    if res != None:
+        return HttpResponse(
+            dumps(res)
+        )
+    return HttpResponse("Invalid Request, no known chart provided")

@@ -1,5 +1,6 @@
-from django.apps import AppConfig
 import pymongo
+from django.apps import AppConfig
+
 from DataLoader.mongodb import ConnectToDB
 
 global _Mongo

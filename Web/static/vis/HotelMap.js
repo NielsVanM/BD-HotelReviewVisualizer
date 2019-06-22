@@ -1,4 +1,5 @@
 
+
 class HotelMapVis {
     constructor(targetDiv) {
         this.otherCharts = []
@@ -113,15 +114,6 @@ class HotelMapVis {
                 chart.hideLoading()
             },
         })
-    }
-
-    setOtherCharts(charts) {
-        charts.forEach(chart => {
-            // Filter self
-            if (chart != this) {
-                this.otherCharts.push(chart)
-            }
-        });
     }
 
     onDrillDown(e) {

@@ -10,11 +10,21 @@ function paramString(object) {
 // UpdateCharts updates every chart except for the eclude chart with
 // the provided arguments
 function UpdateCharts(exclude, args) {
+    for ([key, value] of Object.entries(args)) {
+        CurrentFilters[key] = value
+    }
+    console.log(CurrentFilters)
+    // Copy the CurrentFilters because otherwise the chart type
+    // ends up in the current filters, breaking visualizations
+    var cf = $.extend(true, {}, CurrentFilters)
+
+    // Apply filters on every chart except for the excluded one
     ChartList.forEach(chart => {
         if (chart.chart != exclude) {
-            chart.update(args)
+            chart.update(cf)
         }
     });
+
 }
 
 // isNear calculates the distance betwdeen a source and target hotel and returns true
@@ -31,9 +41,8 @@ function isNear(source, target, sensitivity) {
     return false
 }
 
-// Groups a list of hotels by their coordinates, returns a list of groups
+// Groups hotels based on their lat/long, returns a list of drilldowns that can be used in the chart
 function GroupHotels(hotellist) {
-    // Groups hotels based on their lat/long, returns a list of drilldowns that can be used in the chart
     data = []
 
     var targethotel = null
@@ -81,4 +90,9 @@ function LatLonCenter(group) {
     }
 
     return [totalLat / group.length, totalLon / group.length]
+}
+
+function ResetFilters() {
+    CurrentFilters = {}
+    UpdateCharts(null, CurrentFilters)
 }
