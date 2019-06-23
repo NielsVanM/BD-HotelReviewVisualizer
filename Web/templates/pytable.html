@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+<div class="col-4">
+    <div class="card text-left">
+      <div class="card-body">
+        <h4 class="card-title">File Statistics</h4>
+        <p class="card-text">
+            Size: ~{{file_size}}GB <br>
+            Rows: {{rows}} <br>
+            Columns:<ul>
+            {% for col in cols %}
+                <li>{{col}}</li>
+            {% endfor %} 
+            </ul>
+        </p>
+        <a name="load_all" id="load_all" class="btn btn-danger" href="/pytable/loadall/" role="button">Load Whole Dataset without PyTables</a>
+      </div>
+    </div>
+</div>
+<div class="col-8">
+<div class="card text-left">
+  <div class="card-body">
+    <h4 class="card-title">With PyTable</h4>
+    <p class="card-text">
+        <h5>Average Core Temperature: <span id="core">Loading...</span></h5>
+        <h5>Minimal Core Temperature: <span id="min">Loading...</span> </h5>
+        <h5>Maximum Core Temperature: <span id="max">Loading...</span> </h5>
+    </p>
+  </div>
+</div>
+</div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "/pytable/coretemp/",
+        method: "GET",
+        success: function(res) {
+            res = JSON.parse(res)
+            $("#core").html(res.average)
+            $("#min").html(res.min)
+            $("#max").html(res.max)
+        }
+    })
+})
+</script>
+{% endblock content %}
