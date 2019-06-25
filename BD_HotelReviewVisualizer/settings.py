@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'Spark.apps.SparkConfig',
     'Web',
     'DataLoader',
     'BDSim',

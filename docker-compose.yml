@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  spark_master:
+    build: ./deployment/spark
+    command: /spark/bin/spark-class org.apache.spark.deploy.master.Master --port 7077 --webui-port 8080
+    ports:
+      - 8080:8080
+      - 7077:7077
+    networks:
+      sparknet:
+        ipv4_address: 10.5.0.5
+    
+  spark_slave:
+    build: ./deployment/spark
+    command: /spark/bin/spark-class org.apache.spark.deploy.worker.Worker --webui-port 8081 spark://10.5.0.5:7077 
+    ports:
+      - 8081:8081
+    networks:
+      sparknet:
+
+networks:
+  sparknet:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
