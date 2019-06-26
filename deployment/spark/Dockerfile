@@ -12,3 +12,5 @@ RUN tar -xzf spark-2.4.3-bin-hadoop2.7.tgz && \
 
 RUN mv mongo-hadoop-spark-2.0.2.jar /spark/jars/
 RUN mv mongo-hadoop-core-2.0.2.jar /spark/jars/
+
+ENV PYSPARK_PYTHON='/usr/bin/python3.6'

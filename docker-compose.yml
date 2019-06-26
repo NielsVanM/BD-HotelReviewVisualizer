@@ -6,6 +6,7 @@ services:
     command: /spark/bin/spark-class org.apache.spark.deploy.master.Master --port 7077 --webui-port 8080
     ports:
       - 8080:8080
+      - 8020:8020
       - 7077:7077
     networks:
       sparknet:
@@ -13,7 +14,7 @@ services:
     
   spark_slave:
     build: ./deployment/spark
-    command: /spark/bin/spark-class org.apache.spark.deploy.worker.Worker --webui-port 8081 spark://10.5.0.5:7077 
+    command: /spark/bin/spark-class org.apache.spark.deploy.worker.Worker --webui-port 8081 spark://10.5.0.5:7077
     ports:
       - 8081:8081
     networks:

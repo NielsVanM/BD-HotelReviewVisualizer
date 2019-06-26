@@ -89,7 +89,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+py_36_env/
 # Spyder project settings
 .spyderproject
 .spyproject
